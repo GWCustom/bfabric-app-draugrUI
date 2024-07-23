@@ -86,15 +86,49 @@ def entity_data(token_data: dict) -> str:
     endpoint = entity_class_map.get(entity_class, None)
     entity_id = token_data.get('entity_id_data', None)
 
+    sample_lanes = {}
+
     if wrapper and entity_class and endpoint and entity_id:
         xml = wrapper.read_object(endpoint=endpoint, obj={"id":entity_id})[0]
+        lane_xml = wrapper.read_object(endpoint="rununit", obj={"id":str(xml.rununit._id)})[0]
+        lanes = wrapper.read_object(endpoint="rununitlane", obj={"id":[str(elt._id) for elt in lane_xml.rununitlane]}) 
+        for lane in lanes: 
+            if len(lane.sample) < 100:    
+                samples = wrapper.read_object(endpoint="sample", obj={"id":[str(elt._id) for elt in lane.sample]})
+            else: 
+                samples = []
+                for i in range(0, len(lane.sample), 100):
+                    samples += wrapper.read_object(endpoint="sample", obj={"id":[str(elt._id) for elt in lane.sample[i:i+100]]})
+            container_ids = list(set(list([elt.container._id for elt in samples])))
+            sample_lanes[str(lane.position)] = [str(elt) + " " + str(wrapper.read_object(endpoint="container", obj={"id":str(elt)})[0].name) for elt in container_ids]
+
+ 
     else:
         return None
 
-    json_data = json.dumps({
+    json_data = {
         "createdby": xml.createdby, 
         "created": xml.created,
         "modified": xml.modified,
+        "lanes": sample_lanes,
         # . . . add additional attributes here which you want to save from the entity data
-    })
+    }
+
+    try: 
+        json_data['containers'] = [elt._id for elt in xml.container if elt._classname == "order"]
+    except:
+        json_data['containers'] = []
+
+    try: 
+        json_data['server'] = xml.serverlocation
+        json_data['datafolder'] = xml.datafolder
+    except:
+        json_data['server'] = None
+        json_data['datafolder'] = None
+
+    # print("JSONDATA:")
+    # print(json_data)
+
+    json_data = json.dumps(json_data)
+
     return json_data
