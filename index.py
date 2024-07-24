@@ -74,6 +74,23 @@ app.layout = html.Div(
                                 id="alert-fade",
                                 dismissable=True,
                                 is_open=False,
+                                color="success",
+                                style={"max-width":"50vw", "margin":"10px"}
+                            ),
+                            dbc.Alert(
+                                "Sushification has begun! Please close this window now, and see Sushi for further status updates and logs.",
+                                id="alert-fade-2",
+                                dismissable=True,
+                                is_open=False,
+                                color="success",
+                                style={"max-width":"50vw", "margin":"10px"}
+                            ),
+                            dbc.Alert(
+                                "Sushification has FAILED! Please try DMX again, and then try Sushi again.",
+                                id="alert-fade-2-fail",
+                                dismissable=True,
+                                is_open=False,
+                                color="danger",
                                 style={"max-width":"50vw", "margin":"10px"}
                             ),
                         ]
@@ -294,7 +311,9 @@ def toggle_modal(n1, n2, is_open):
 @app.callback(
     [
         Output("empty-div-1", "children"), 
-        Output("alert-fade", "is_open")
+        Output("alert-fade", "is_open"),
+        Output("alert-fade-2", "is_open"),
+        Output("alert-fade-2-fail", "is_open")
     ],
     [
         Input("close", "n_clicks"),
@@ -338,7 +357,7 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         print(draugr_command)
         os.system(draugr_command)
 
-        return None, True
+        return None, True, False, False
     
     elif n_clicks2:
         print("ORDERS2:")
@@ -348,13 +367,16 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
             run_name=entity_data['name']
         )
         
-        print("DRAUGR COMMAND:")
+        if not draugr_command:
+            return None, False, False, True
+
+        print("SUSHI COMMAND:")
         print(draugr_command)
         os.system(draugr_command)
 
-        return None, True
+        return None, False, True, False
 
-    return None, False
+    return None, False, False, False
 
 if __name__ == '__main__':
     app.run_server(debug=False, port=PORT, host=HOST)
