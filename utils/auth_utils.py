@@ -51,6 +51,7 @@ def token_to_data(token: str) -> str:
             userWsPassword = userinfo['userWsPassword']
         )
 
+
         return json.dumps(token_data)
     
 
@@ -107,6 +108,7 @@ def entity_data(token_data: dict) -> str:
         return None
 
     json_data = {
+        "name": xml.name,
         "createdby": xml.createdby, 
         "created": xml.created,
         "modified": xml.modified,
@@ -126,8 +128,8 @@ def entity_data(token_data: dict) -> str:
         json_data['server'] = None
         json_data['datafolder'] = None
 
-    # print("JSONDATA:")
-    # print(json_data)
+    print("JSONDATA:")
+    print(json_data)
 
     json_data = json.dumps(json_data)
 

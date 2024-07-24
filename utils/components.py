@@ -45,13 +45,20 @@ default_sidebar = [
     html.P(id="draugr-text-4", children="Is Multiome"),
     daq.BooleanSwitch(id='multiome', on=False),
     html.Br(),
-    dbc.Input(value='Custom Bcl2fastq flags', id='bcl-input'),
+    dbc.Input(value="", placeholder='Custom Bcl2fastq flags', id='bcl-input'),
     html.Br(),
-    dbc.Input(value='Custom Cellranger flags', id='cellranger-input'),
+    dbc.Input(value="", placeholder='Custom Cellranger flags', id='cellranger-input'),
     html.Br(),
-    dbc.Input(value='Custom Bases2fastq flags', id='bases2fastq-input'),
+    dbc.Input(value="", placeholder='Custom Bases2fastq flags', id='bases2fastq-input'),
     html.Br(),
     dbc.Button('Submit', id='draugr-button'),
+]
+
+sushi_sidebar = [
+    html.P(id="sidebar_text2", children="Select Orders to Sushify"),
+    dcc.Dropdown([], id='draugr-dropdown-2', multi=True),
+    html.Br(),
+    dbc.Button('Submit', id='draugr-button-2'),
 ]
 
 no_auth = [
@@ -113,7 +120,7 @@ tab2_content = dbc.Row(
         dbc.Col(
             html.Div(
                 id="page-content2",
-                children=no_auth + [html.Div(id="auth-div2")],style={"margin-top":"20vh", "margin-left":"2vw", "font-size":"20px"},
+                children=no_auth + [html.Div(id="auth-div2")],style={"margin-top":"2vh", "margin-left":"2vw", "font-size":"20px"},
             ),
             width=9,
         ),
@@ -135,7 +142,7 @@ tab3_content = dbc.Row(
         dbc.Col(
             html.Div(
                 id="page-content3",
-                children=no_auth + [html.Div(id="auth-div3")],style={"margin-top":"20vh", "margin-left":"2vw", "font-size":"20px"},
+                children=no_auth + [html.Div(id="auth-div3")],style={"margin-top":"2vh", "margin-left":"2vw", "font-size":"20px"},
             ),
             width=9,
         ),
@@ -156,7 +163,7 @@ modal = html.Div(
         dbc.Modal(
             [
                 dbc.ModalHeader(dbc.ModalTitle("Ready to DMX? 🚀")),
-                dbc.ModalBody("Are you sure you're ready do demux?"),
+                dbc.ModalBody("Are you sure you're ready to demux?"),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Yes!", id="close", className="ms-auto", n_clicks=0
@@ -164,6 +171,24 @@ modal = html.Div(
                 ),
             ],
             id="modal",
+            is_open=False,
+        ),
+    ]
+)
+
+modal2 = html.Div(
+    [
+        dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Ready to Sushify? ⋅˚₊‧ ୨🍙🍣🍱🥢୧ ‧₊˚ ⋅")),
+                dbc.ModalBody("Are you sure you're ready to sushify data?"),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Yes!", id="close2", className="ms-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="modal2",
             is_open=False,
         ),
     ]

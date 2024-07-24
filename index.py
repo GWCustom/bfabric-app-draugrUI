@@ -124,6 +124,7 @@ app.layout = html.Div(
         ),
         html.Div(id="empty-div-1"),
         components.modal,
+        components.modal2,
     ],style={"width":"100vw", "overflow-x":"hidden", "overflow-y":"scroll"}
 )
 
@@ -146,7 +147,9 @@ app.layout = html.Div(
         Output('bcl-input', 'disabled'),
         Output('cellranger-input', 'disabled'),
         Output('draugr-dropdown', 'disabled'),
-        Output('bases2fastq-input', 'disabled')
+        Output('bases2fastq-input', 'disabled'),
+        Output('draugr-dropdown-2', 'disabled'),
+        Output('draugr-button-2', 'disabled')
     ],
     [
         Input('url', 'search'),
@@ -157,40 +160,50 @@ def display_page(url_params):
     base_title = "Genomics Runs"
 
     if not url_params:
-        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True
+        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True, True, True
     
     token = "".join(url_params.split('token=')[1:])
     tdata_raw = auth_utils.token_to_data(token)
     
     if tdata_raw:
         if tdata_raw == "EXPIRED":
-            return None, None, None, components.expired, components.expired, components.expired, base_title, True, True, True, True, True, True, True, True, True
+            return None, None, None, components.expired, components.expired, components.expired, base_title, True, True, True, True, True, True, True, True, True, True, True
 
         else: 
             tdata = json.loads(tdata_raw)
     else:
-        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True
+        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True, True, True
     
     if tdata:
         entity_data = json.loads(auth_utils.entity_data(tdata))
-        page_title = f"{base_title} - {tdata['entityClass_data']} - {tdata['entity_id_data']} ({tdata['environment']} System)" if tdata else "Bfabric App Interface"
+        page_title = f"{base_title} - {tdata['entityClass_data']} - {entity_data['name']} ({tdata['environment']} System)" if tdata else "Bfabric App Interface"
 
         if not tdata:
-            return token, None, None, components.no_auth, components.no_auth, components.no_auth, page_title, True, True, True, True, True, True, True, True, True
+            return token, None, None, components.no_auth, components.no_auth, components.no_auth, page_title, True, True, True, True, True, True, True, True, True, True, True
         
         elif not entity_data:
-            return token, None, None, components.no_entity, components.no_entity, components.no_entity, page_title, True, True, True, True, True, True, True, True, True
+            return token, None, None, components.no_entity, components.no_entity, components.no_entity, page_title, True, True, True, True, True, True, True, True, True, True, True
         
         else:
             if not DEV:
-                return token, tdata, entity_data, components.auth, components.auth2, components.auth3, page_title, False, False, False, False, False, False, False, False, False
+                return token, tdata, entity_data, components.auth, components.auth2, components.auth3, page_title, False, False, False, False, False, False, False, False, False, False, False
             else: 
-                return token, tdata, entity_data, components.dev, components.dev, components.dev, page_title, True, True, True, True, True, True, True, True, True
+                return token, tdata, entity_data, components.dev, components.dev, components.dev, page_title, True, True, True, True, True, True, True, True, True, True, True
     else: 
-        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True
+        return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True, True, True
     
 @app.callback(
     Output('draugr-dropdown', 'options'),
+    [Input('entity', 'data')],
+)
+def update_dropdown(entity_data):
+    
+    orders = entity_data['containers']
+    options = [{"label": elt, "value": elt} for elt in orders]
+    return options
+
+@app.callback(
+    Output('draugr-dropdown-2', 'options'),
     [Input('entity', 'data')],
 )
 def update_dropdown(entity_data):
@@ -256,7 +269,7 @@ def update_auth_div(entity_data):
             ]
         )
     
-    return container, functionality_disabled, functionality_disabled
+    return container, functionality_disabled, container
 
 @app.callback(
     Output("modal", "is_open"),
@@ -269,12 +282,23 @@ def toggle_modal(n1, n2, is_open):
     return is_open
 
 @app.callback(
+    Output("modal2", "is_open"),
+    [Input("draugr-button-2", "n_clicks"), Input("close2", "n_clicks")],
+    [State("modal2", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+@app.callback(
     [
         Output("empty-div-1", "children"), 
         Output("alert-fade", "is_open")
     ],
     [
-        Input("close", "n_clicks")
+        Input("close", "n_clicks"),
+        Input("close2", "n_clicks")
     ],
     [
         State("draugr-dropdown", "value"),
@@ -288,10 +312,11 @@ def toggle_modal(n1, n2, is_open):
         State("token", "data"),
         State("token_data", "data"),
         State("entity", "data"),
+        State("draugr-dropdown-2", "value")
     ]
 
 )
-def execute_draugr_command(n_clicks, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data):
+def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data, orders2):
     
     if n_clicks:
         print("ORDERS:")
@@ -314,6 +339,21 @@ def execute_draugr_command(n_clicks, orders, gstore, wizard, test, multiome, bcl
         os.system(draugr_command)
 
         return None, True
+    
+    elif n_clicks2:
+        print("ORDERS2:")
+        print(orders2)
+        draugr_command = du.generate_sushi_command(
+            order_list=orders2,
+            run_name=entity_data['name']
+        )
+        
+        print("DRAUGR COMMAND:")
+        print(draugr_command)
+        os.system(draugr_command)
+
+        return None, True
+
     return None, False
 
 if __name__ == '__main__':
