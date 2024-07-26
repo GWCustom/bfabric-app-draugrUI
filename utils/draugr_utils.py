@@ -43,7 +43,7 @@ def generate_draugr_command(
         # draugr_command += " --test-mode"
         draugr_command += ""
     if is_multiome:
-        draugr_command += " --is-multiome-run True"
+        draugr_command += " --is-multiome-run"
     if bcl_flags:
         draugr_command += " --custom-bcl2fastq-flags " + bcl_flags
     if cellranger_flags:
@@ -104,11 +104,12 @@ def generate_sushi_command(
     
     order_string = "|".join([str(elt) for elt in order_list]).replace("|", "\\|")
 
-    if in_orig:
+    # if in_orig:
+    if True:
         # ssh_command = f"ssh trxcopy@fgcz-h-031 'cd /srv/sushi/production/master && source /usr/local/ngseq/etc/lmod_profile && export MODULEPATH=/usr/local/ngseq/etc/modules && module load Dev/Ruby && . /usr/local/ngseq/miniconda3/etc/profile.d/conda.sh && conda activate sushi && grep \"{order_string}\" /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s'"
-        ssh_command = f"""ssh trxcopy@fgcz-h-031 "bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/{run_name}*| uniq -u|bash -s'" """
+        # ssh_command = f'''ssh trxcopy@fgcz-h-031 "bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s'"'''
+        ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep '{order_string}' /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s' > /dev/null 2>&1 &"'''
     else:
-        # ssh_command = f"ssh trxcopy@fgcz-h-031 'cd /srv/sushi/production/master && source /usr/local/ngseq/etc/lmod_profile && export MODULEPATH=/usr/local/ngseq/etc/modules && module load Dev/Ruby && . /usr/local/ngseq/miniconda3/etc/profile.d/conda.sh && conda activate sushi && grep \"{order_string}\" /srv/GT/analysis/datasets/processed/{run_name}* | uniq -u | bash -s'"
-        ssh_command = f"""ssh trxcopy@fgcz-h-031 "bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/processed/{run_name}*| uniq -u|bash -s'" """
-    
+        # ssh_command = f"ssh trxcopy@fgcz-h-031 'cd /srv/sushi/production/master && source /usr/local/ngseq/etc/lmod_profile && export MODULEPATH=/usr/local/ngseq/etc/modules && module load Dev/Ruby && . /usr/local/ngseq/miniconda3/etc/profile.d/conda.sh && conda activate sushi && grep \"{order_string}\" /srv/GT/analysis/datasets/processed/{run_name}* | uniq -u | bash -s'"sh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s' &"'''        ssh_command = f"""ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/processed/{run_name}*| uniq -u|bash -s' &" """
+        ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep "{order_string}" /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s' &"'''
     return ssh_command
