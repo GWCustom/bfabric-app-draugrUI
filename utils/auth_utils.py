@@ -136,12 +136,13 @@ def entity_data(token_data: dict) -> str:
 
     return json_data
 
-def send_bug_report(token_data, entity_data):
+def send_bug_report(token_data, entity_data, description):
 
     mail_string = f"""
         \n\n
         token_data: {token_data} \n\n 
         entity_data: {entity_data} \n\n
+        description: {description} \n\n
         sent_at: {datetime.datetime.now()} \n\n
     """
 

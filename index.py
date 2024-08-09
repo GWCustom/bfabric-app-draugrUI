@@ -371,18 +371,23 @@ def toggle_modal(n1, n2, is_open):
     ],
     [
         State("token", "data"),
-        State("entity", "data")
+        State("entity", "data"),
+        State("bug-description", "value")
     ]
 )
-def submit_bug_report(n_clicks, token, entity_data):
+def submit_bug_report(n_clicks, token, entity_data, bug_description):
 
-    token_data = json.loads(auth_utils.token_to_data(token))
-    
+    if token: 
+        token_data = json.loads(auth_utils.token_to_data(token))
+    else:
+        token_data = ""
+
     if n_clicks:
         try:
             sending_result = auth_utils.send_bug_report(
                 token_data=token_data,
-                entity_data=entity_data
+                entity_data=entity_data,
+                description=bug_description
             )
             if sending_result:
                 return True, False
