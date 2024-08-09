@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 import dash
 import json
 import os
+from datetime import datetime as dt
 # import bfabric
 from utils import auth_utils, components, draugr_utils as du
 
@@ -93,6 +94,30 @@ app.layout = html.Div(
                                 color="danger",
                                 style={"max-width":"50vw", "margin":"10px"}
                             ),
+                            dbc.Alert(
+                                "You're bug report has been submitted. Thanks for helping us improve!",
+                                id="alert-fade-3",
+                                dismissable=True,
+                                is_open=False,
+                                color="info",
+                                style={"max-width":"50vw", "margin":"10px"}
+                            ),
+                            dbc.Alert(
+                                "Failed to submit bug report! Please email the developers directly at the email below!",
+                                id="alert-fade-3-fail", 
+                                dismissable=True,
+                                is_open=False, 
+                                color="danger",
+                                style={"max-width":"50vw", "margin":"10px"}
+                            ),
+                            dbc.Alert(
+                                "Your submission didn't go through, because you haven't selected any orders from the dropdown! Please select which orders you'd like to process and try again.",
+                                id="alert-fade-4",
+                                dismissable=True,
+                                is_open=False,
+                                color="danger",
+                                style={"max-width":"50vw", "margin":"10px"}
+                            )
                         ]
                     )
                 ),
@@ -232,13 +257,41 @@ def update_dropdown(entity_data):
 @app.callback(
     [    Output('auth-div', 'children'),
          Output('auth-div2', 'children'),
-         Output('auth-div3', 'children')
+         Output('auth-div3', 'children'),
+         Output('session-details', 'children'),
     ],
     [
         Input("entity", "data"),
+    ],
+    [
+        State("token", "data"),
     ]
 )
-def update_auth_div(entity_data):
+def update_auth_div(entity_data, token):
+
+    token_data = json.loads(auth_utils.token_to_data(token))
+
+    if not entity_data: 
+        session_details = [html.P("No session details available.")]
+    else:
+        session_details = [
+            html.P([
+                html.B("Entity Name: "), entity_data['name'],
+                html.Br(),
+                html.B("Entity Class: "), token_data['entityClass_data'],
+                html.Br(),
+                html.B("Environment: "), token_data['environment'],
+                html.Br(),
+                html.B("Entity ID: "), token_data['entity_id_data'],
+                html.Br(),
+                html.B("User Name: "), token_data['user_data'],
+                html.Br(),
+                html.B("Session Expires: "), token_data['token_expires'],
+                html.Br(),
+                html.B("Current Time: "), str(dt.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+            ])
+        ]
 
     functionality_disabled = [html.P("This functionality is currently disabled while we implement this feature in Draugr. Please check back later!")]
 
@@ -286,7 +339,7 @@ def update_auth_div(entity_data):
             ]
         )
     
-    return container, functionality_disabled, container
+    return container, functionality_disabled, container, session_details
 
 @app.callback(
     Output("modal", "is_open"),
@@ -310,10 +363,44 @@ def toggle_modal(n1, n2, is_open):
 
 @app.callback(
     [
+        Output("alert-fade-3", "is_open"),
+        Output("alert-fade-3-fail", "is_open")
+    ],
+    [
+        Input("submit-bug-report", "n_clicks")
+    ],
+    [
+        State("token", "data"),
+        State("entity", "data")
+    ]
+)
+def submit_bug_report(n_clicks, token, entity_data):
+
+    token_data = json.loads(auth_utils.token_to_data(token))
+    
+    if n_clicks:
+        try:
+            sending_result = auth_utils.send_bug_report(
+                token_data=token_data,
+                entity_data=entity_data
+            )
+            if sending_result:
+                return True, False
+            else:
+                return False, True
+        except:
+            return False, True
+
+    return False, False
+
+
+@app.callback(
+    [
         Output("empty-div-1", "children"), 
         Output("alert-fade", "is_open"),
         Output("alert-fade-2", "is_open"),
-        Output("alert-fade-2-fail", "is_open")
+        Output("alert-fade-2-fail", "is_open"),
+        Output("alert-fade-4", "is_open")
     ],
     [
         Input("close", "n_clicks"),
@@ -336,8 +423,10 @@ def toggle_modal(n1, n2, is_open):
 
 )
 def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data, orders2):
-    
+
     if n_clicks:
+        if not orders:
+            return None, False, False, False, True
         print("ORDERS:")
         print(orders)
         draugr_command = du.generate_draugr_command(
@@ -357,9 +446,11 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         print(draugr_command)
         os.system(draugr_command)
 
-        return None, True, False, False
+        return None, True, False, False, False
     
     elif n_clicks2:
+        if not orders2:
+            return None, False, False, False, True
         print("ORDERS2:")
         print(orders2)
         draugr_command = du.generate_sushi_command(
@@ -368,15 +459,15 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         )
         
         if not draugr_command:
-            return None, False, False, True
+            return None, False, False, True, False
 
         print("SUSHI COMMAND:")
         print(draugr_command)
         os.system(draugr_command)
 
-        return None, False, True, False
+        return None, False, True, False, False
 
-    return None, False, False, False
+    return None, False, False, False, False
 
 if __name__ == '__main__':
     app.run_server(debug=False, port=PORT, host=HOST)
