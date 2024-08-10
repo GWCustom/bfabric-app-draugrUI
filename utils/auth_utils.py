@@ -139,6 +139,7 @@ def entity_data(token_data: dict) -> str:
 def send_bug_report(token_data, entity_data, description):
 
     mail_string = f"""
+    BUG REPORT FROM DRAUGR-UI
         \n\n
         token_data: {token_data} \n\n 
         entity_data: {entity_data} \n\n
