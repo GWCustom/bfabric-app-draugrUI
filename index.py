@@ -6,6 +6,7 @@ import os
 from datetime import datetime as dt
 # import bfabric
 from utils import auth_utils, components, draugr_utils as du
+import time
 
 
 if os.path.exists("./PARAMS.py"):
@@ -458,17 +459,24 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
             return None, False, False, False, True
         print("ORDERS2:")
         print(orders2)
-        draugr_command = du.generate_sushi_command(
+
+        draugr_command1, draugr_command2 = du.generate_sushi_command(
             order_list=orders2,
             run_name=entity_data['name']
         )
         
-        if not draugr_command:
+        if not draugr_command1:
             return None, False, False, True, False
 
-        print("SUSHI COMMAND:")
-        print(draugr_command)
-        os.system(draugr_command)
+        print("GENERATE SUSHI SCRIPT COMMAND:")
+        print(draugr_command1)
+
+        print("EXECUTE SUSHI SCRIPT COMMAND:")
+        print(draugr_command2)
+
+        os.system(draugr_command1)
+        time.sleep(1) 
+        os.system(draugr_command2)
 
         return None, False, True, False, False
 
