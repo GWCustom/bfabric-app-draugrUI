@@ -72,7 +72,7 @@ app.layout = html.Div(
                                 style={"margin-top":"0px", "min-height":"80px","height":"6vh","border-bottom":"2px solid #d4d7d9"}
                             ),
                             dbc.Alert(
-                                "Demultiplexing has begun! Please close this window now, and see bfabric for further status updates and logs.",
+                                "Demultiplexing has begun! Please close this window now, and see B-Fabric for further status updates and logs.",
                                 id="alert-fade",
                                 dismissable=True,
                                 is_open=False,
@@ -150,7 +150,7 @@ app.layout = html.Div(
         ),
         dbc.Tooltip(
             """Disable the demultiplexing Wizard. None of the samples are tested for
-                        barcode issues andthe information from BFabric is taken as-is.
+                        barcode issues andthe information from B-Fabric is taken as-is.
              """,
             target="wizard"
         ),
@@ -161,7 +161,7 @@ app.layout = html.Div(
         dbc.Tooltip(
             """For single-index 10X samples, determines if we should run in multiome-
                         mode (with CellRangerARC) or with the default program (CellRanger).
-                        Overrides BFabric-derived information.
+                        Overrides B-Fabric-derived information.
              """,
             target="multiome"
         ),
@@ -219,7 +219,7 @@ def display_page(url_params):
     
     if tdata:
         entity_data = json.loads(auth_utils.entity_data(tdata))
-        page_title = f"{base_title} - {tdata['entityClass_data']} - {entity_data['name']} ({tdata['environment']} System)" if tdata else "Bfabric App Interface"
+        page_title = f"{base_title} - {tdata['entityClass_data']} - {entity_data['name']} ({tdata['environment']} System)" if tdata else "B-Fabric App Interface"
 
         if not tdata:
             return token, None, None, components.no_auth, components.no_auth, components.no_auth, page_title, True, True, True, True, True, True, True, True, True, True, True

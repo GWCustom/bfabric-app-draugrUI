@@ -63,18 +63,18 @@ sushi_sidebar = [
 ]
 
 no_auth = [
-    html.P("You are not currently logged into an active session. Please log into bfabric to continue:"),
-    html.A('Login to Bfabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
+    html.P("You are not currently logged into an active session. Please log into B-Fabric to continue:"),
+    html.A('Login to B-Fabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
 ]
 
 expired = [
-    html.P("Your session has expired. Please log into bfabric to continue:"),
-    html.A('Login to Bfabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
+    html.P("Your session has expired. Please log into B-Fabric to continue:"),
+    html.A('Login to B-Fabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
 ]
 
 no_entity = [
-    html.P("There was an error fetching the data for your entity. Please try accessing the applicaiton again from bfabric:"),
-    html.A('Login to Bfabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
+    html.P("There was an error fetching the data for your entity. Please try accessing the applicaiton again from B-Fabric:"),
+    html.A('Login to B-Fabric', href='https://fgcz-bfabric.uzh.ch/bfabric/')
 ]
 
 dev = [html.P("This page is under development. Please check back later."),html.Br(),html.A("email the developer for more details",href="mailto:"+DEVELOPER_EMAIL)]
