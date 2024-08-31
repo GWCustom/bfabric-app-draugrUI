@@ -68,7 +68,7 @@ app.layout = html.Div(
                     dbc.Col(
                         [
                             html.Div(
-                                children=[html.P(id="page-title",children=[str("Genomics Runs")], style={"font-size":"40px", "margin-left":"20px", "margin-top":"10px"})],
+                                children=[html.P(id="page-title",children=[str(" ")], style={"font-size":"40px", "margin-left":"20px", "margin-top":"10px"})],
                                 style={"margin-top":"0px", "min-height":"80px","height":"6vh","border-bottom":"2px solid #d4d7d9"}
                             ),
                             dbc.Alert(
@@ -200,7 +200,7 @@ app.layout = html.Div(
 )
 def display_page(url_params):
     
-    base_title = "Genomics Runs"
+    base_title = " "
 
     if not url_params:
         return None, None, None, components.no_auth, components.no_auth, components.no_auth, base_title, True, True, True, True, True, True, True, True, True, True, True
@@ -219,7 +219,7 @@ def display_page(url_params):
     
     if tdata:
         entity_data = json.loads(auth_utils.entity_data(tdata))
-        page_title = f"{base_title} - {tdata['entityClass_data']} - {entity_data['name']} ({tdata['environment']} System)" if tdata else "B-Fabric App Interface"
+        page_title = f"{base_title} - {tdata['entityClass_data']} - {entity_data['name']}" if tdata else "B-Fabric App Interface"
 
         if not tdata:
             return token, None, None, components.no_auth, components.no_auth, components.no_auth, page_title, True, True, True, True, True, True, True, True, True, True, True
