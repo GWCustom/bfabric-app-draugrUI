@@ -293,10 +293,10 @@ report_bug_tab = dbc.Row(
 
 tabs = dbc.Tabs(
     [
-        dbc.Tab(docs_tab, label="Documentation"),
         dbc.Tab(tab1_content, label="Draugr / DMX"),
-        dbc.Tab(tab2_content, label="Prepare Raw Data"),
-        dbc.Tab(tab3_content, label="Sushify"),
+        dbc.Tab(tab2_content, label="Raw Data"),
+        dbc.Tab(tab3_content, label="Fastq Reports"),
+        dbc.Tab(docs_tab, label="Documentation"),
         dbc.Tab(report_bug_tab, label="Report a Bug"),
     ]
 )
@@ -323,8 +323,8 @@ modal2 = html.Div(
     [
         dbc.Modal(
             [
-                dbc.ModalHeader(dbc.ModalTitle("Ready to Sushify? ⋅˚₊‧ ୨🍙🍣🍱🥢୧ ‧₊˚ ⋅")),
-                dbc.ModalBody("Are you sure you're ready to sushify data?"),
+                dbc.ModalHeader(dbc.ModalTitle("Ready to Prepare Fastq Reports?")),
+                dbc.ModalBody("Are you sure you're ready to begin preparing FastqScreen and FastQC reports?"),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Yes!", id="close2", className="ms-auto", n_clicks=0
