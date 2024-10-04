@@ -95,17 +95,21 @@ def generate_sushi_command(
 
     check_file_command_original = f"ssh {ssh_login} 'ls {remote_path}/{run_name}*'"  
     check_file_command_processed = f"ssh {ssh_login} 'ls {remote_path}/processed/{run_name}*'"
+    check_file_command_iseq = f"ssh {ssh_login} 'ls {remote_path}/ISeq/{run_name}*'"
 
     in_orig = check_if_file_exists(check_file_command_original)
     in_proc = check_if_file_exists(check_file_command_processed)
+    in_iseq = check_if_file_exists(check_file_command_iseq)
 
-    if not in_orig and not in_proc:
+    if not in_orig and not in_proc and not in_iseq:
         return False, False
     
     order_string = "|".join([str(elt) for elt in order_list]).replace("|", "\\|")
 
     if in_orig: 
         generate_bash_script = f'''ssh trxcopy@fgcz-h-031 "grep '{order_string}' /srv/GT/analysis/datasets/{run_name}* | uniq -u > /srv/GT/analysis/datasets/draugrUI/{run_name}_orders.sh"'''
+    elif in_iseq:
+        generate_bash_script = f'''ssh trxcopy@fgcz-h-031 "grep '{order_string}' /srv/GT/analysis/datasets/ISeq/{run_name}* | uniq -u > /srv/GT/analysis/datasets/draugrUI/{run_name}_orders.sh"'''
     else: 
         generate_bash_script = f'''ssh trxcopy@fgcz-h-031 "grep '{order_string}' /srv/GT/analysis/datasets/processed/{run_name}* | uniq -u > /srv/GT/analysis/datasets/draugrUI/{run_name}_orders.sh"'''
 
