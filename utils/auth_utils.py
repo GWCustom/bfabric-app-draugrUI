@@ -2,10 +2,13 @@
 import requests
 import json
 import datetime
-import bfabric
 from dash import html
 import dash_bootstrap_components as dbc
 import os
+import bfabric
+from bfabric import BfabricAuth
+from bfabric import BfabricClientConfig
+
 
 VALIDATION_URL = "https://fgcz-bfabric.uzh.ch/bfabric/rest/token/validate?token="
 HOST = "fgcz-bfabric.uzh.ch"
@@ -60,17 +63,18 @@ def token_to_data(token: str) -> str:
 
 def token_response_to_bfabric(token_response: dict) -> str:
 
-    bfabric_wrapper = bfabric.Bfabric(login=token_response['user_data'], password=token_response['userWsPassword'], webbase=token_response['webbase_data'])
+    bfabric_auth = BfabricAuth(login=token_response.get('user_data'), password=token_response.get('userWsPassword'))
+    bfabric_client_config = BfabricClientConfig(base_url=token_response.get('webbase_data')) 
+
+    bfabric_wrapper = bfabric.Bfabric(config=bfabric_client_config, auth=bfabric_auth)
 
     return bfabric_wrapper
 
 
-    
-def entity_data(token_data: dict) -> str: 
-
+def entity_data(token_data: dict) -> str:
     """
-    This function takes in a token from B-Fabric, and returns the entity data for the token.
-    Edit this function to change which data is stored in the browser for this entity.
+    This function takes in a token from B-Fabric and returns the entity data for the token.
+    Edit this function to change which data is stored in the browser for this entity
     """
 
     entity_class_map = {
@@ -86,57 +90,60 @@ def entity_data(token_data: dict) -> str:
         return None
 
     wrapper = token_response_to_bfabric(token_data)
-    entity_class = token_data.get('entityClass_data', None)
-    endpoint = entity_class_map.get(entity_class, None)
-    entity_id = token_data.get('entity_id_data', None)
+    entity_class = token_data.get('entityClass_data')
+    endpoint = entity_class_map.get(entity_class)
+    entity_id = token_data.get('entity_id_data')
 
     sample_lanes = {}
 
     if wrapper and entity_class and endpoint and entity_id:
-        xml = wrapper.read_object(endpoint=endpoint, obj={"id":entity_id})[0]
-        lane_xml = wrapper.read_object(endpoint="rununit", obj={"id":str(xml.rununit._id)})[0]
-        lanes = wrapper.read_object(endpoint="rununitlane", obj={"id":[str(elt._id) for elt in lane_xml.rununitlane]}) 
-        for lane in lanes: 
-            if len(lane.sample) < 100:    
-                samples = wrapper.read_object(endpoint="sample", obj={"id":[str(elt._id) for elt in lane.sample]})
-            else: 
-                samples = []
-                for i in range(0, len(lane.sample), 100):
-                    samples += wrapper.read_object(endpoint="sample", obj={"id":[str(elt._id) for elt in lane.sample[i:i+100]]})
-            container_ids = list(set(list([elt.container._id for elt in samples])))
-            sample_lanes[str(lane.position)] = [str(elt) + " " + str(wrapper.read_object(endpoint="container", obj={"id":str(elt)})[0].name) for elt in container_ids]
+        entity_data_list = wrapper.read(endpoint=endpoint, obj={"id": entity_id})
+        if not entity_data_list:
+            return json.dumps({})
+        entity_data_dict = entity_data_list[0]
 
- 
+        rununit_id = entity_data_dict.get("rununit", {}).get("id")
+        if not rununit_id:
+            return json.dumps({})
+
+        lane_data_list = wrapper.read(endpoint="rununit", obj={"id": str(rununit_id)})
+        if not lane_data_list:
+            return json.dumps({})
+        lane_data = lane_data_list[0]
+
+        lane_samples = wrapper.read(endpoint="rununitlane", obj={"id": [str(elt["id"]) for elt in lane_data.get("rununitlane", [])]})
+
+        for lane in lane_samples:
+            samples = []
+            sample_ids = [str(elt["id"]) for elt in lane.get("sample", [])]
+            if len(sample_ids) < 100:
+                samples = wrapper.read(endpoint="sample", obj={"id": sample_ids})
+            else:
+                for i in range(0, len(sample_ids), 100):
+                    samples += wrapper.read(endpoint="sample", obj={"id": sample_ids[i:i+100]})
+
+            container_ids = list(set([sample.get("container", {}).get("id") for sample in samples if sample.get("container")]))
+            sample_lanes[str(lane.get("position"))] = [
+                f"{container_id} {wrapper.read(endpoint='container', obj={'id': str(container_id)})[0].get('name', '')}" 
+                for container_id in container_ids
+            ]
+
     else:
-        return None
+        return json.dumps({})
 
     json_data = {
-        "name": xml.name,
-        "createdby": xml.createdby, 
-        "created": xml.created,
-        "modified": xml.modified,
+        "name": entity_data_dict.get("name", ""),
+        "createdby": entity_data_dict.get("createdby", ""),
+        "created": entity_data_dict.get("created", ""),
+        "modified": entity_data_dict.get("modified", ""),
         "lanes": sample_lanes,
-        # . . . add additional attributes here which you want to save from the entity data
+        "containers": [container["id"] for container in entity_data_dict.get("container", []) if container.get("classname") == "order"],
+        "server": entity_data_dict.get("serverlocation", ""),
+        "datafolder": entity_data_dict.get("datafolder", "")
     }
 
-    try: 
-        json_data['containers'] = [elt._id for elt in xml.container if elt._classname == "order"]
-    except:
-        json_data['containers'] = []
+    return json.dumps(json_data)
 
-    try: 
-        json_data['server'] = xml.serverlocation
-        json_data['datafolder'] = xml.datafolder
-    except:
-        json_data['server'] = None
-        json_data['datafolder'] = None
-
-    print("JSONDATA:")
-    print(json_data)
-
-    json_data = json.dumps(json_data)
-
-    return json_data
 
 def send_bug_report(token_data, entity_data, description):
 
