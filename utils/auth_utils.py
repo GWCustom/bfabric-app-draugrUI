@@ -97,7 +97,7 @@ def entity_data(token_data: dict) -> str:
     sample_lanes = {}
 
     if wrapper and entity_class and endpoint and entity_id:
-        entity_data_list = wrapper.read(endpoint=endpoint, obj={"id": entity_id})
+        entity_data_list = wrapper.read(endpoint=endpoint, obj={"id": entity_id}, max_results=None)
         if not entity_data_list:
             return json.dumps({})
         entity_data_dict = entity_data_list[0]
@@ -106,25 +106,25 @@ def entity_data(token_data: dict) -> str:
         if not rununit_id:
             return json.dumps({})
 
-        lane_data_list = wrapper.read(endpoint="rununit", obj={"id": str(rununit_id)})
+        lane_data_list = wrapper.read(endpoint="rununit", obj={"id": str(rununit_id)}, max_results=None)
         if not lane_data_list:
             return json.dumps({})
         lane_data = lane_data_list[0]
 
-        lane_samples = wrapper.read(endpoint="rununitlane", obj={"id": [str(elt["id"]) for elt in lane_data.get("rununitlane", [])]})
+        lane_samples = wrapper.read(endpoint="rununitlane", obj={"id": [str(elt["id"]) for elt in lane_data.get("rununitlane", [])]}, max_results=None)
 
         for lane in lane_samples:
             samples = []
             sample_ids = [str(elt["id"]) for elt in lane.get("sample", [])]
             if len(sample_ids) < 100:
-                samples = wrapper.read(endpoint="sample", obj={"id": sample_ids})
+                samples = wrapper.read(endpoint="sample", obj={"id": sample_ids}, max_results=None)
             else:
                 for i in range(0, len(sample_ids), 100):
-                    samples += wrapper.read(endpoint="sample", obj={"id": sample_ids[i:i+100]})
+                    samples += wrapper.read(endpoint="sample", obj={"id": sample_ids[i:i+100]}, max_results=None)
 
             container_ids = list(set([sample.get("container", {}).get("id") for sample in samples if sample.get("container")]))
             sample_lanes[str(lane.get("position"))] = [
-                f"{container_id} {wrapper.read(endpoint='container', obj={'id': str(container_id)})[0].get('name', '')}" 
+                f"{container_id} {wrapper.read(endpoint='container', obj={'id': str(container_id)},max_results=None)[0].get('name', '')}" 
                 for container_id in container_ids
             ]
 
