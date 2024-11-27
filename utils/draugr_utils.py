@@ -1,4 +1,7 @@
 import subprocess
+from .objects import Logger
+import datetime
+
 
 def generate_draugr_command(
     server,
@@ -10,7 +13,8 @@ def generate_draugr_command(
     is_multiome=False, 
     bcl_flags=None, 
     cellranger_flags=None, 
-    bases2fastq_flags=None
+    bases2fastq_flags=None,
+    token_data  = None
 ):
     """
     Generate a command string for the Draugr pipeline.
@@ -63,6 +67,47 @@ def generate_draugr_command(
 
     system_call = f"ssh illumina@{server} '{PREFIX} && nohup {draugr_command} &> /export/local/data/draugrUI/output.log &' &> output.log"
     TEST_SYSTEM_CALL = f"ssh illumina@{TEST_SERVER} '{PREFIX} && nohup {TEST_COMMAND} &> /export/local/data/draugrUI/output.log &' &> output.log"
+
+
+    jobId = token_data.get('jobId', None)
+    username = token_data.get("user_data", "None")
+
+    L = Logger(jobid=jobId, username=username)
+
+
+    # Log Ldmx
+    L.log_operation(
+        operation="dmx",
+        message=f"Demultiplexing initiated for RunID: {run_folder} with containers: {order_list}.",
+        params={
+            "username": username,
+            "timestamp": datetime.datetime.now(),
+            "run_id": run_folder,
+            "container_ids": order_list,
+            "disable_wizard": disable_wizard,
+            "is_multiome": is_multiome
+        },
+        flush_logs=True
+    )
+
+    # Log Lfastq (if FASTQ-related flags are provided)
+    if bcl_flags or cellranger_flags or bases2fastq_flags:
+        L.log_operation(
+            operation="fastq",
+            message=f"FASTQ generation prepared for RunID: {run_folder}.",
+            params={
+                "username": username,
+                "timestamp": datetime.datetime.now(),
+                "run_id": run_folder,
+                "container_ids": order_list,
+                "bcl_flags": bcl_flags,
+                "cellranger_flags": cellranger_flags,
+                "bases2fastq_flags": bases2fastq_flags
+            },
+            flush_logs=True
+        )
+
+
 
     # return system_call
     return system_call

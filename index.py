@@ -7,6 +7,7 @@ from datetime import datetime as dt
 # import bfabric
 from utils import auth_utils, components, draugr_utils as du
 import time
+from utils.objects import Logger
 
 
 if os.path.exists("./PARAMS.py"):
@@ -238,19 +239,19 @@ def display_page(url_params):
 @app.callback(
     Output('draugr-dropdown', 'options'),
     [Input('entity', 'data')],
+    prevent_initial_call=True
 )
 def update_dropdown(entity_data):
-    
-    orders = entity_data['containers']
+    orders = entity_data.get('containers')
     options = [{"label": elt, "value": elt} for elt in orders]
     return options
 
 @app.callback(
     Output('draugr-dropdown-2', 'options'),
     [Input('entity', 'data')],
+    prevent_initial_call=True
 )
 def update_dropdown(entity_data):
-    
     orders = entity_data['containers']
     options = [{"label": elt, "value": elt} for elt in orders]
     return options
@@ -374,8 +375,10 @@ def toggle_modal(n1, n2, is_open):
         State("token", "data"),
         State("entity", "data"),
         State("bug-description", "value")
-    ]
+    ],
+    prevent_initial_call=True
 )
+
 def submit_bug_report(n_clicks, token, entity_data, bug_description):
 
     if token: 
@@ -383,18 +386,28 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
     else:
         token_data = ""
 
+    jobId = token_data.get('jobId', None)
+    username = token_data.get("user_data", "None")
+
+    L = Logger(jobid=jobId, username=username)
+
     if n_clicks:
+        L.log_operation("bug report", "Initiating bug report submission process.", params=None, flush_logs=False)
         try:
             sending_result = auth_utils.send_bug_report(
                 token_data=token_data,
                 entity_data=entity_data,
                 description=bug_description
             )
+
             if sending_result:
+                L.log_operation("bug report", f"Bug report successfully submitted. | DESCRIPTION: {bug_description}", params=None, flush_logs=True)
                 return True, False
             else:
+                L.log_operation("bug report", "Failed to submit bug report!", params=None, flush_logs=True)
                 return False, True
         except:
+            L.log_operation("bug report", "Failed to submit bug report!", params=None, flush_logs=True)
             return False, True
 
     return False, False
@@ -445,7 +458,8 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
             is_multiome=multiome,
             bcl_flags=bcl_flags,
             cellranger_flags=cellranger_flags,
-            bases2fastq_flags=bases2fastq_flags
+            bases2fastq_flags=bases2fastq_flags,
+            token_data = token_data
         )
         
         print("DRAUGR COMMAND:")
@@ -483,4 +497,4 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
     return None, False, False, False, False
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=PORT, host=HOST)
+    app.run_server(debug=True, port=PORT, host=HOST)
