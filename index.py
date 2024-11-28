@@ -438,10 +438,12 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
         State("token_data", "data"),
         State("entity", "data"),
         State("draugr-dropdown-2", "value")
-    ]
-
+    ],
+    prevent_initial_call=True
 )
 def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data, orders2):
+
+    L = Logger(jobid=token_data.get('jobId', None), username=token_data.get("user_data", "None"))
 
     if n_clicks:
         if not orders:
@@ -458,13 +460,21 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
             is_multiome=multiome,
             bcl_flags=bcl_flags,
             cellranger_flags=cellranger_flags,
-            bases2fastq_flags=bases2fastq_flags,
-            token_data = token_data
+            bases2fastq_flags=bases2fastq_flags
         )
         
         print("DRAUGR COMMAND:")
         print(draugr_command)
         os.system(draugr_command)
+        
+        L.log_operation(
+            operation="execute",
+            message="DMX execution",
+            params={
+                "system_call": draugr_command
+            },
+            flush_logs=True
+        )
 
         return None, True, False, False, False
     
@@ -480,6 +490,7 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         )
         
         if not draugr_command1:
+            L.log_operation("EXECUTE", "Sushification has FAILED! Please try DMX again, and then try Sushi again.", params=None, flush_logs=True)
             return None, False, False, True, False
 
         print("GENERATE SUSHI SCRIPT COMMAND:")
@@ -492,9 +503,19 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         time.sleep(1) 
         os.system(draugr_command2)
 
+        L.log_operation(
+            operation="execute",
+            message="FASTQ execution",
+            params={
+                "generate_bash_script": draugr_command1,
+                "execute_bash_script": draugr_command2,
+            },
+            flush_logs=True
+        )
+
         return None, False, True, False, False
 
     return None, False, False, False, False
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=PORT, host=HOST)
+    app.run_server(debug=False, port=PORT, host=HOST)

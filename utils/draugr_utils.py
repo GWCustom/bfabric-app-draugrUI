@@ -13,8 +13,7 @@ def generate_draugr_command(
     is_multiome=False, 
     bcl_flags=None, 
     cellranger_flags=None, 
-    bases2fastq_flags=None,
-    token_data  = None
+    bases2fastq_flags=None
 ):
     """
     Generate a command string for the Draugr pipeline.
@@ -67,47 +66,12 @@ def generate_draugr_command(
 
     system_call = f"ssh illumina@{server} '{PREFIX} && nohup {draugr_command} &> /export/local/data/draugrUI/output.log &' &> output.log"
     TEST_SYSTEM_CALL = f"ssh illumina@{TEST_SERVER} '{PREFIX} && nohup {TEST_COMMAND} &> /export/local/data/draugrUI/output.log &' &> output.log"
-
-
-    jobId = token_data.get('jobId', None)
-    username = token_data.get("user_data", "None")
-
-    L = Logger(jobid=jobId, username=username)
-
-
-    # Log Ldmx
-    L.log_operation(
-        operation="dmx",
-        message=f"Demultiplexing initiated for RunID: {run_folder} with containers: {order_list}.",
-        params={
-            "username": username,
-            "timestamp": datetime.datetime.now(),
-            "run_id": run_folder,
-            "container_ids": order_list,
-            "disable_wizard": disable_wizard,
-            "is_multiome": is_multiome
-        },
-        flush_logs=True
-    )
-
-    # Log Lfastq (if FASTQ-related flags are provided)
-    if bcl_flags or cellranger_flags or bases2fastq_flags:
-        L.log_operation(
-            operation="fastq",
-            message=f"FASTQ generation prepared for RunID: {run_folder}.",
-            params={
-                "username": username,
-                "timestamp": datetime.datetime.now(),
-                "run_id": run_folder,
-                "container_ids": order_list,
-                "bcl_flags": bcl_flags,
-                "cellranger_flags": cellranger_flags,
-                "bases2fastq_flags": bases2fastq_flags
-            },
-            flush_logs=True
-        )
-
-
+    
+    # inot line 123 generat_sushi_command fastq in generate_sushi_command 
+    # 
+    # change to just operation gget executet
+    # params empty
+    # add the string we send to the server.   
 
     # return system_call
     return system_call
@@ -164,5 +128,5 @@ def generate_sushi_command(
     #     ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep '{order_string}' /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s &> /srv/GT/analysis/datasets/draugrUI/output.log &' &> output.log"'''
     # else:
     #     ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep '{order_string}' /srv/GT/analysis/datasets/processed/{run_name}* | uniq -u | bash -s &> /srv/GT/analysis/datasets/draugrUI/output.log &' &> output.log"'''
-    
+
     return generate_bash_script, execute_bash_script
