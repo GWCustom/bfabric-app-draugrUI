@@ -8,6 +8,7 @@ from datetime import datetime as dt
 from utils import auth_utils, components, draugr_utils as du
 import time
 from utils.objects import Logger
+from dash import callback_context as ctx
 
 
 if os.path.exists("./PARAMS.py"):
@@ -445,7 +446,9 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
 
     L = Logger(jobid=token_data.get('jobId', None), username=token_data.get("user_data", "None"))
 
-    if n_clicks:
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "close":
         if not orders:
             return None, False, False, False, True
         print("ORDERS:")
@@ -478,7 +481,7 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
 
         return None, True, False, False, False
     
-    elif n_clicks2:
+    elif button_clicked == "close2":
         if not orders2:
             return None, False, False, False, True
         print("ORDERS2:")
