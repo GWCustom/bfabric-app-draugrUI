@@ -484,11 +484,14 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         print("ORDERS2:")
         print(orders2)
 
-        draugr_command1, draugr_command2 = du.generate_sushi_command(
-            order_list=orders2,
-            run_name=entity_data['name']
-        )
-        
+        try:
+            draugr_command1, draugr_command2 = du.generate_sushi_command(
+                order_list=orders2,
+                run_name=entity_data['name']
+            )
+        except: 
+            draugr_command1, draugr_command2 = None, None
+
         if not draugr_command1:
             L.log_operation("EXECUTE", "Sushification has FAILED! Please try DMX again, and then try Sushi again.", params=None, flush_logs=True)
             return None, False, False, True, False
