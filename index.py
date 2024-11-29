@@ -387,10 +387,10 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
     else:
         token_data = ""
 
-    jobId = token_data.get('jobId', None)
-    username = token_data.get("user_data", "None")
-
-    L = Logger(jobid=jobId, username=username)
+    L = Logger(
+        jobid = token_data.get('jobId', None),
+        username= token_data.get("user_data", "None"),
+        environment= token_data.get("environment", "None"))
 
     if n_clicks:
         L.log_operation("bug report", "Initiating bug report submission process.", params=None, flush_logs=False)
@@ -444,7 +444,10 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
 )
 def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data, orders2):
 
-    L = Logger(jobid=token_data.get('jobId', None), username=token_data.get("user_data", "None"))
+    L = Logger(
+        jobid = token_data.get('jobId', None),
+        username= token_data.get("user_data", "None"),
+        environment= token_data.get("environment", "None"))
 
     button_clicked = ctx.triggered_id
 
