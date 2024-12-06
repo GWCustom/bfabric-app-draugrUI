@@ -7,6 +7,8 @@ from datetime import datetime as dt
 # import bfabric
 from utils import auth_utils, components, draugr_utils as du
 import time
+from utils.objects import Logger
+from dash import callback_context as ctx
 
 
 if os.path.exists("./PARAMS.py"):
@@ -238,19 +240,19 @@ def display_page(url_params):
 @app.callback(
     Output('draugr-dropdown', 'options'),
     [Input('entity', 'data')],
+    prevent_initial_call=True
 )
 def update_dropdown(entity_data):
-    
-    orders = entity_data['containers']
+    orders = entity_data.get('containers')
     options = [{"label": elt, "value": elt} for elt in orders]
     return options
 
 @app.callback(
     Output('draugr-dropdown-2', 'options'),
     [Input('entity', 'data')],
+    prevent_initial_call=True
 )
 def update_dropdown(entity_data):
-    
     orders = entity_data['containers']
     options = [{"label": elt, "value": elt} for elt in orders]
     return options
@@ -374,8 +376,10 @@ def toggle_modal(n1, n2, is_open):
         State("token", "data"),
         State("entity", "data"),
         State("bug-description", "value")
-    ]
+    ],
+    prevent_initial_call=True
 )
+
 def submit_bug_report(n_clicks, token, entity_data, bug_description):
 
     if token: 
@@ -383,18 +387,28 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
     else:
         token_data = ""
 
+    L = Logger(
+        jobid = token_data.get('jobId', None),
+        username= token_data.get("user_data", "None"),
+        environment= token_data.get("environment", "None"))
+
     if n_clicks:
+        L.log_operation("bug report", "Initiating bug report submission process.", params=None, flush_logs=False)
         try:
             sending_result = auth_utils.send_bug_report(
                 token_data=token_data,
                 entity_data=entity_data,
                 description=bug_description
             )
+
             if sending_result:
+                L.log_operation("bug report", f"Bug report successfully submitted. | DESCRIPTION: {bug_description}", params=None, flush_logs=True)
                 return True, False
             else:
+                L.log_operation("bug report", "Failed to submit bug report!", params=None, flush_logs=True)
                 return False, True
         except:
+            L.log_operation("bug report", "Failed to submit bug report!", params=None, flush_logs=True)
             return False, True
 
     return False, False
@@ -425,12 +439,19 @@ def submit_bug_report(n_clicks, token, entity_data, bug_description):
         State("token_data", "data"),
         State("entity", "data"),
         State("draugr-dropdown-2", "value")
-    ]
-
+    ],
+    prevent_initial_call=True
 )
 def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, multiome, bcl_flags, cellranger_flags, bases2fastq_flags, token, token_data, entity_data, orders2):
 
-    if n_clicks:
+    L = Logger(
+        jobid = token_data.get('jobId', None),
+        username= token_data.get("user_data", "None"),
+        environment= token_data.get("environment", "None"))
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "close":
         if not orders:
             return None, False, False, False, True
         print("ORDERS:")
@@ -451,21 +472,34 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         print("DRAUGR COMMAND:")
         print(draugr_command)
         os.system(draugr_command)
+        
+        L.log_operation(
+            operation="execute",
+            message="DMX execution",
+            params={
+                "system_call": draugr_command
+            },
+            flush_logs=True
+        )
 
         return None, True, False, False, False
     
-    elif n_clicks2:
+    elif button_clicked == "close2":
         if not orders2:
             return None, False, False, False, True
         print("ORDERS2:")
         print(orders2)
 
-        draugr_command1, draugr_command2 = du.generate_sushi_command(
-            order_list=orders2,
-            run_name=entity_data['name']
-        )
-        
+        try:
+            draugr_command1, draugr_command2 = du.generate_sushi_command(
+                order_list=orders2,
+                run_name=entity_data['name']
+            )
+        except: 
+            draugr_command1, draugr_command2 = None, None
+
         if not draugr_command1:
+            L.log_operation("EXECUTE", "Sushification has FAILED! Please try DMX again, and then try Sushi again.", params=None, flush_logs=True)
             return None, False, False, True, False
 
         print("GENERATE SUSHI SCRIPT COMMAND:")
@@ -477,6 +511,16 @@ def execute_draugr_command(n_clicks, n_clicks2, orders, gstore, wizard, test, mu
         os.system(draugr_command1)
         time.sleep(1) 
         os.system(draugr_command2)
+
+        L.log_operation(
+            operation="execute",
+            message="FASTQ execution",
+            params={
+                "generate_bash_script": draugr_command1,
+                "execute_bash_script": draugr_command2,
+            },
+            flush_logs=True
+        )
 
         return None, False, True, False, False
 

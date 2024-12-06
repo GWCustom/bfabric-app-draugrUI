@@ -1,4 +1,7 @@
 import subprocess
+from .objects import Logger
+import datetime
+
 
 def generate_draugr_command(
     server,
@@ -63,6 +66,12 @@ def generate_draugr_command(
 
     system_call = f"ssh illumina@{server} '{PREFIX} && nohup {draugr_command} &> /export/local/data/draugrUI/output.log &' &> output.log"
     TEST_SYSTEM_CALL = f"ssh illumina@{TEST_SERVER} '{PREFIX} && nohup {TEST_COMMAND} &> /export/local/data/draugrUI/output.log &' &> output.log"
+    
+    # inot line 123 generat_sushi_command fastq in generate_sushi_command 
+    # 
+    # change to just operation gget executet
+    # params empty
+    # add the string we send to the server.   
 
     # return system_call
     return system_call
@@ -119,5 +128,5 @@ def generate_sushi_command(
     #     ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep '{order_string}' /srv/GT/analysis/datasets/{run_name}* | uniq -u | bash -s &> /srv/GT/analysis/datasets/draugrUI/output.log &' &> output.log"'''
     # else:
     #     ssh_command = f'''ssh trxcopy@fgcz-h-031 "nohup bash -lc 'cd /srv/sushi/production/master && grep '{order_string}' /srv/GT/analysis/datasets/processed/{run_name}* | uniq -u | bash -s &> /srv/GT/analysis/datasets/draugrUI/output.log &' &> output.log"'''
-    
+
     return generate_bash_script, execute_bash_script
