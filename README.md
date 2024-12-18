@@ -1,5 +1,5 @@
-# bfabric-app-template
-Template Application for Bfabric Webapp Concept (written in Python3) 
+# Draugr UI
+User Interface for Draugr invocations on FGCZ cluser
 
 ## Deployment 
 
